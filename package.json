@@ -24,7 +24,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.4.0"
+    "@actions/core": "^1.4.0",
+    "@octokit/rest": "^18.6.7"
   },
   "devDependencies": {
     "@types/jest": "^26.0.23",
