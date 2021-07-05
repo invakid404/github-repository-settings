@@ -1,6 +1,7 @@
 import { Octokit } from '@octokit/rest';
+import { Context } from './context';
 
 export const octokit = new Octokit({
-  auth: `token ${process.env.GITHUB_TOKEN}`,
+  auth: `token ${Context.token}`,
   userAgent: 'github-repository-settings',
 });
