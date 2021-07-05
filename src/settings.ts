@@ -15,13 +15,13 @@ export type BranchSettings =
 
 let settings: Settings;
 
-export const getSettings = (): Settings | undefined => {
+export const getSettings = (): Settings => {
   if (settings) {
     return settings;
   }
 
   if (!Context.githubWorkspace || !Context.settingsPath) {
-    return undefined;
+    throw new Error('Settings path not specified!');
   }
 
   const settingsPath = path.resolve(

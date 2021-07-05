@@ -1,9 +1,12 @@
 import * as core from '@actions/core';
-import { getSettings } from './settings';
+import { processBranches } from './branches';
 
 const run = async (): Promise<void> => {
-  const settings = getSettings();
-  core.info(JSON.stringify(settings, null, 4));
+  try {
+    await processBranches();
+  } catch (error) {
+    core.setFailed(error.message);
+  }
 };
 
 run();
