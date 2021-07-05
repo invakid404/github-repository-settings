@@ -1,14 +1,9 @@
 import * as core from '@actions/core';
-import { octokit } from './octokit';
-import { Context } from './context';
+import { getSettings } from './settings';
 
 const run = async (): Promise<void> => {
-  const { data } = await octokit.repos.getBranchProtection({
-    ...Context.repo,
-    branch: 'main',
-  });
-
-  core.info(JSON.stringify(data));
+  const settings = getSettings();
+  core.info(JSON.stringify(settings, null, 4));
 };
 
 run();
