@@ -1,4 +1,5 @@
 import { Octokit } from '@octokit/rest';
+
 import { Context } from './context';
 
 export const octokit = new Octokit({

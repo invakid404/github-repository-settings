@@ -1,8 +1,9 @@
 import { RestEndpointMethodTypes } from '@octokit/rest';
-import { Context } from './context';
-import * as yaml from 'yaml';
-import * as path from 'path';
 import * as fs from 'fs';
+import * as path from 'path';
+import * as yaml from 'yaml';
+
+import { Context } from './context';
 
 export interface Settings {
   branches?: BranchesSettings;

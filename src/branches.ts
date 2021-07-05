@@ -1,7 +1,8 @@
 import * as core from '@actions/core';
-import { BranchSettings, getSettings } from './settings';
-import { octokit } from './octokit';
+
 import { Context } from './context';
+import { octokit } from './octokit';
+import { BranchSettings, getSettings } from './settings';
 
 export const processBranches = async (): Promise<void> => {
   const { branches } = getSettings();
