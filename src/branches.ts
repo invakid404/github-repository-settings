@@ -23,13 +23,17 @@ const setProtectionRules = async (
   branchName: string,
   protectionRules: BranchSettings,
 ): Promise<void> => {
-  const branchQuery = {
-    ...Context.repo,
-    branch: branchName,
-  };
+  try {
+    const branchQuery = {
+      ...Context.repo,
+      branch: branchName,
+    };
 
-  await octokit.repos.updateBranchProtection({
-    ...branchQuery,
-    ...protectionRules,
-  });
+    await octokit.repos.updateBranchProtection({
+      ...branchQuery,
+      ...protectionRules,
+    });
+  } catch (error) {
+    core.warning(`Branch protection update failed: ${error.message}`);
+  }
 };
