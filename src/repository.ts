@@ -8,6 +8,8 @@ export const processRepository = async (): Promise<void> => {
   const { repository } = getSettings();
   if (!repository) {
     core.warning('No repository settings specified!');
+
+    return;
   }
 
   await octokit.repos.update({ ...Context.repo, repository });
