@@ -12,5 +12,8 @@ export const processRepository = async (): Promise<void> => {
     return;
   }
 
-  await octokit.repos.update({ ...Context.repo, repository });
+  await octokit.repos.update({
+    ...Context.repo,
+    ...repository,
+  });
 };
