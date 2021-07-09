@@ -5,9 +5,11 @@ import * as yaml from 'yaml';
 
 import { Context } from './context';
 
+export type SettingsType<T> = Omit<T, 'owner' | 'repo'>;
+
 export interface Settings {
-  repository?: RepositorySettings;
-  branches?: BranchesSettings;
+  repository?: SettingsType<RepositorySettings>;
+  branches?: SettingsType<BranchesSettings>;
 }
 
 export type RepositorySettings =
