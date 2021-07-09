@@ -6,8 +6,12 @@ import * as yaml from 'yaml';
 import { Context } from './context';
 
 export interface Settings {
+  repository?: RepositorySettings;
   branches?: BranchesSettings;
 }
+
+export type RepositorySettings =
+  RestEndpointMethodTypes['repos']['update']['parameters'];
 
 export type BranchesSettings = Record<string, BranchSettings>;
 
