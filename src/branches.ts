@@ -1,7 +1,6 @@
 import * as core from '@actions/core';
 
-import { Context } from './context';
-import { octokit } from './octokit';
+import { getRepositoryId } from './octoql';
 import { BranchSettings, getSettings } from './settings';
 
 export const processBranches = async (): Promise<void> => {
@@ -24,15 +23,11 @@ const setProtectionRules = async (
   protectionRules: BranchSettings,
 ): Promise<void> => {
   try {
-    const branchQuery = {
-      ...Context.repo,
-      branch: branchName,
-    };
+    const repositoryId = await getRepositoryId();
 
-    await octokit.repos.updateBranchProtection({
-      ...branchQuery,
-      ...protectionRules,
-    });
+    core.info(repositoryId);
+    core.info(branchName);
+    core.info(JSON.stringify(protectionRules, null, 2));
   } catch (error) {
     core.warning(`Branch protection update failed: ${error.message}`);
   }
