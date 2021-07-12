@@ -38,8 +38,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.processBranches = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const json_to_graphql_query_1 = __nccwpck_require__(6450);
+const context_1 = __nccwpck_require__(3842);
 const octoql_1 = __nccwpck_require__(2866);
 const settings_1 = __nccwpck_require__(2286);
+const utils_1 = __nccwpck_require__(918);
 const processBranches = () => __awaiter(void 0, void 0, void 0, function* () {
     const { branches } = settings_1.getSettings();
     if (!branches) {
@@ -51,24 +53,78 @@ const processBranches = () => __awaiter(void 0, void 0, void 0, function* () {
 exports.processBranches = processBranches;
 const setProtectionRules = (branchName, protectionRules) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const repositoryId = yield octoql_1.getRepositoryId();
-        const request = {
-            mutation: {
-                createBranchProtectionRule: {
-                    __args: {
-                        input: Object.assign(Object.assign({}, protectionRules), { repositoryId, pattern: branchName }),
-                    },
-                    branchProtectionRule: {
-                        id: true,
-                    },
-                },
-            },
-        };
-        yield octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
+        yield deleteProtectionRule(branchName);
+        yield createProtectionRule(branchName, protectionRules);
     }
     catch (error) {
         core.warning(`Branch protection update failed: ${error.message}`);
     }
+});
+let protectionRulePatternMap;
+const getProtectionRules = () => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    if (protectionRulePatternMap) {
+        return protectionRulePatternMap;
+    }
+    const request = {
+        query: {
+            repository: {
+                __args: {
+                    owner: context_1.Context.repo.owner,
+                    name: context_1.Context.repo.repo,
+                },
+                branchProtectionRules: {
+                    __args: {
+                        first: 100,
+                    },
+                    nodes: {
+                        pattern: true,
+                        id: true,
+                    },
+                },
+            },
+        },
+    };
+    const { repository: { branchProtectionRules: { nodes }, }, } = yield octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
+    protectionRulePatternMap = new Map((_a = nodes === null || nodes === void 0 ? void 0 : nodes.filter(utils_1.notEmpty)) === null || _a === void 0 ? void 0 : _a.map(({ id, pattern }) => [pattern, id]));
+    return protectionRulePatternMap;
+});
+const deleteProtectionRule = (branchName) => __awaiter(void 0, void 0, void 0, function* () {
+    const protectionRules = yield getProtectionRules();
+    const branchProtectionRuleId = protectionRules === null || protectionRules === void 0 ? void 0 : protectionRules.get(branchName);
+    if (!branchProtectionRuleId) {
+        return;
+    }
+    const repositoryId = yield octoql_1.getRepositoryId();
+    const request = {
+        mutation: {
+            deleteBranchProtectionRule: {
+                __args: {
+                    input: {
+                        branchProtectionRuleId,
+                    },
+                },
+                clientMutationId: true,
+            },
+        },
+    };
+    return octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
+});
+const createProtectionRule = (branchName, protectionRules) => __awaiter(void 0, void 0, void 0, function* () {
+    const repositoryId = yield octoql_1.getRepositoryId();
+    const request = {
+        mutation: {
+            createBranchProtectionRule: {
+                __args: {
+                    input: Object.assign(Object.assign({}, protectionRules), { repositoryId, pattern: branchName }),
+                },
+                branchProtectionRule: {
+                    id: true,
+                },
+            },
+        },
+    };
+    return octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
 });
 
 
@@ -321,6 +377,21 @@ const getSettings = () => {
     return (settings = yaml.parse(settingsContent));
 };
 exports.getSettings = getSettings;
+
+
+/***/ }),
+
+/***/ 918:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.notEmpty = void 0;
+function notEmpty(value) {
+    return value !== null && value !== undefined;
+}
+exports.notEmpty = notEmpty;
 
 
 /***/ }),
