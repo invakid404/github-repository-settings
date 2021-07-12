@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import { GraphQlResponse } from '@octokit/graphql/dist-types/types';
 import { jsonToGraphQLQuery } from 'json-to-graphql-query';
 import { Context } from './context';
-import { BranchProtectionRule, Repository } from './generated/graphql';
+import { BranchProtectionRule, Maybe, Repository } from './generated/graphql';
 
 import { getRepositoryId, octoql } from './octoql';
 import { BranchSettings, getSettings } from './settings';
@@ -38,10 +38,8 @@ const setProtectionRules = async (
 let protectionRulePatternMap: Map<string, string>;
 
 const getProtectionRules = async (
-  cursor?: string,
+  cursor?: Maybe<string>,
 ): Promise<Array<BranchProtectionRule>> => {
-  const results = new Array<BranchProtectionRule>();
-
   const request = {
     query: {
       repository: {
@@ -71,11 +69,11 @@ const getProtectionRules = async (
     repository: { branchProtectionRules },
   }: { repository: Repository } = await octoql(jsonToGraphQLQuery(request));
 
-  results.push(...(branchProtectionRules.nodes?.filter(notEmpty) ?? []));
+  const results = branchProtectionRules.nodes?.filter(notEmpty) ?? [];
 
   if (branchProtectionRules.pageInfo.hasNextPage) {
     const recurse = await getProtectionRules(
-      branchProtectionRules.pageInfo.endCursor!,
+      branchProtectionRules.pageInfo.endCursor,
     );
 
     results.push(...recurse);
@@ -107,8 +105,6 @@ const deleteProtectionRule = async (
   if (!branchProtectionRuleId) {
     return;
   }
-
-  const repositoryId = await getRepositoryId();
 
   const request = {
     mutation: {
