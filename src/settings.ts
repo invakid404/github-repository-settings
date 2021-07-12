@@ -4,12 +4,17 @@ import * as path from 'path';
 import * as yaml from 'yaml';
 
 import { Context } from './context';
+import { CreateBranchProtectionRuleInput } from './generated/graphql';
 
 export type SettingsType<T> = Omit<T, 'owner' | 'repo'>;
+export type GraphQLSettingsType<T> = Omit<
+  T,
+  'repositoryId' | 'clientMutationId'
+>;
 
 export interface Settings {
   repository?: SettingsType<RepositorySettings>;
-  branches?: SettingsType<BranchesSettings>;
+  branches?: GraphQLSettingsType<BranchesSettings>;
 }
 
 export type RepositorySettings =
@@ -17,8 +22,7 @@ export type RepositorySettings =
 
 export type BranchesSettings = Record<string, BranchSettings>;
 
-export type BranchSettings =
-  RestEndpointMethodTypes['repos']['updateBranchProtection']['parameters'];
+export type BranchSettings = CreateBranchProtectionRuleInput;
 
 let settings: Settings;
 
