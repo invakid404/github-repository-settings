@@ -29,13 +29,11 @@ export const getRepositoryId = async (): Promise<string> => {
     },
   };
 
-  const query = jsonToGraphQLQuery(request);
-
   const {
     repository: { id },
   }: {
     repository: Repository;
-  } = await octoql(query);
+  } = await octoql(jsonToGraphQLQuery(request));
 
   return (repositoryId = id);
 };

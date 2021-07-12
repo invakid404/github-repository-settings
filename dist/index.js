@@ -37,6 +37,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.processBranches = void 0;
 const core = __importStar(__nccwpck_require__(2186));
+const json_to_graphql_query_1 = __nccwpck_require__(6450);
 const octoql_1 = __nccwpck_require__(2866);
 const settings_1 = __nccwpck_require__(2286);
 const processBranches = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -51,9 +52,19 @@ exports.processBranches = processBranches;
 const setProtectionRules = (branchName, protectionRules) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const repositoryId = yield octoql_1.getRepositoryId();
-        core.info(repositoryId);
-        core.info(branchName);
-        core.info(JSON.stringify(protectionRules, null, 2));
+        const request = {
+            mutation: {
+                createBranchProtectionRule: {
+                    __args: {
+                        input: Object.assign(Object.assign({}, protectionRules), { repositoryId, pattern: branchName }),
+                    },
+                    branchProtectionRule: {
+                        id: true,
+                    },
+                },
+            },
+        };
+        yield octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
     }
     catch (error) {
         core.warning(`Branch protection update failed: ${error.message}`);
@@ -207,8 +218,7 @@ const getRepositoryId = () => __awaiter(void 0, void 0, void 0, function* () {
             },
         },
     };
-    const query = json_to_graphql_query_1.jsonToGraphQLQuery(request);
-    const { repository: { id }, } = yield exports.octoql(query);
+    const { repository: { id }, } = yield exports.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
     return (repositoryId = id);
 });
 exports.getRepositoryId = getRepositoryId;

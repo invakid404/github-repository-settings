@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
+import { jsonToGraphQLQuery } from 'json-to-graphql-query';
 
-import { getRepositoryId } from './octoql';
+import { getRepositoryId, octoql } from './octoql';
 import { BranchSettings, getSettings } from './settings';
 
 export const processBranches = async (): Promise<void> => {
@@ -25,9 +26,24 @@ const setProtectionRules = async (
   try {
     const repositoryId = await getRepositoryId();
 
-    core.info(repositoryId);
-    core.info(branchName);
-    core.info(JSON.stringify(protectionRules, null, 2));
+    const request = {
+      mutation: {
+        createBranchProtectionRule: {
+          __args: {
+            input: {
+              ...protectionRules,
+              repositoryId,
+              pattern: branchName,
+            },
+          },
+          branchProtectionRule: {
+            id: true,
+          },
+        },
+      },
+    };
+
+    await octoql(jsonToGraphQLQuery(request));
   } catch (error) {
     core.warning(`Branch protection update failed: ${error.message}`);
   }
