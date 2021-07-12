@@ -1,9 +1,9 @@
 import * as core from '@actions/core';
 import { GraphQlResponse } from '@octokit/graphql/dist-types/types';
 import { jsonToGraphQLQuery } from 'json-to-graphql-query';
+
 import { Context } from './context';
 import { BranchProtectionRule, Maybe, Repository } from './generated/graphql';
-
 import { getRepositoryId, octoql } from './octoql';
 import { BranchSettings, getSettings } from './settings';
 import { notEmpty } from './utils';
@@ -39,7 +39,7 @@ let protectionRulePatternMap: Map<string, string>;
 
 const getProtectionRules = async (
   cursor?: Maybe<string>,
-): Promise<Array<BranchProtectionRule>> => {
+): Promise<BranchProtectionRule[]> => {
   const request = {
     query: {
       repository: {
