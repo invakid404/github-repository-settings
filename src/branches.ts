@@ -37,10 +37,10 @@ const setProtectionRules = async (
 
 let protectionRulePatternMap: Map<string, string>;
 
-const getProtectionRules = async (): Promise<Map<string, string>> => {
-  if (protectionRulePatternMap) {
-    return protectionRulePatternMap;
-  }
+const getProtectionRules = async (
+  cursor?: string,
+): Promise<Array<BranchProtectionRule>> => {
+  const results = new Array<BranchProtectionRule>();
 
   const request = {
     query: {
@@ -52,6 +52,11 @@ const getProtectionRules = async (): Promise<Map<string, string>> => {
         branchProtectionRules: {
           __args: {
             first: 100,
+            ...(cursor && { after: cursor }),
+          },
+          pageInfo: {
+            endCursor: true,
+            hasNextPage: true,
           },
           nodes: {
             pattern: true,
@@ -63,13 +68,31 @@ const getProtectionRules = async (): Promise<Map<string, string>> => {
   };
 
   const {
-    repository: {
-      branchProtectionRules: { nodes },
-    },
+    repository: { branchProtectionRules },
   }: { repository: Repository } = await octoql(jsonToGraphQLQuery(request));
 
+  results.push(...(branchProtectionRules.nodes?.filter(notEmpty) ?? []));
+
+  if (branchProtectionRules.pageInfo.hasNextPage) {
+    const recurse = await getProtectionRules(
+      branchProtectionRules.pageInfo.endCursor!,
+    );
+
+    results.push(...recurse);
+  }
+
+  return results;
+};
+
+const getProtectionRuleMap = async (): Promise<Map<string, string>> => {
+  if (protectionRulePatternMap) {
+    return protectionRulePatternMap;
+  }
+
+  const protectionRules = await getProtectionRules();
+
   protectionRulePatternMap = new Map(
-    nodes?.filter(notEmpty)?.map(({ id, pattern }) => [pattern, id]),
+    protectionRules?.map(({ id, pattern }) => [pattern, id]),
   );
 
   return protectionRulePatternMap;
@@ -78,8 +101,8 @@ const getProtectionRules = async (): Promise<Map<string, string>> => {
 const deleteProtectionRule = async (
   branchName: string,
 ): GraphQlResponse<{ clientMutationId: string } | undefined> => {
-  const protectionRules = await getProtectionRules();
-  const branchProtectionRuleId = protectionRules?.get(branchName);
+  const protectionRuleMap = await getProtectionRuleMap();
+  const branchProtectionRuleId = protectionRuleMap?.get(branchName);
 
   if (!branchProtectionRuleId) {
     return;

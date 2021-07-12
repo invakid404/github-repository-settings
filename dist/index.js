@@ -61,11 +61,9 @@ const setProtectionRules = (branchName, protectionRules) => __awaiter(void 0, vo
     }
 });
 let protectionRulePatternMap;
-const getProtectionRules = () => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    if (protectionRulePatternMap) {
-        return protectionRulePatternMap;
-    }
+const getProtectionRules = (cursor) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    const results = new Array();
     const request = {
         query: {
             repository: {
@@ -74,8 +72,10 @@ const getProtectionRules = () => __awaiter(void 0, void 0, void 0, function* () 
                     name: context_1.Context.repo.repo,
                 },
                 branchProtectionRules: {
-                    __args: {
-                        first: 100,
+                    __args: Object.assign({ first: 100 }, (cursor && { after: cursor })),
+                    pageInfo: {
+                        endCursor: true,
+                        hasNextPage: true,
                     },
                     nodes: {
                         pattern: true,
@@ -85,13 +85,25 @@ const getProtectionRules = () => __awaiter(void 0, void 0, void 0, function* () 
             },
         },
     };
-    const { repository: { branchProtectionRules: { nodes }, }, } = yield octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
-    protectionRulePatternMap = new Map((_a = nodes === null || nodes === void 0 ? void 0 : nodes.filter(utils_1.notEmpty)) === null || _a === void 0 ? void 0 : _a.map(({ id, pattern }) => [pattern, id]));
+    const { repository: { branchProtectionRules }, } = yield octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
+    results.push(...((_b = (_a = branchProtectionRules.nodes) === null || _a === void 0 ? void 0 : _a.filter(utils_1.notEmpty)) !== null && _b !== void 0 ? _b : []));
+    if (branchProtectionRules.pageInfo.hasNextPage) {
+        const recurse = yield getProtectionRules(branchProtectionRules.pageInfo.endCursor);
+        results.push(...recurse);
+    }
+    return results;
+});
+const getProtectionRuleMap = () => __awaiter(void 0, void 0, void 0, function* () {
+    if (protectionRulePatternMap) {
+        return protectionRulePatternMap;
+    }
+    const protectionRules = yield getProtectionRules();
+    protectionRulePatternMap = new Map(protectionRules === null || protectionRules === void 0 ? void 0 : protectionRules.map(({ id, pattern }) => [pattern, id]));
     return protectionRulePatternMap;
 });
 const deleteProtectionRule = (branchName) => __awaiter(void 0, void 0, void 0, function* () {
-    const protectionRules = yield getProtectionRules();
-    const branchProtectionRuleId = protectionRules === null || protectionRules === void 0 ? void 0 : protectionRules.get(branchName);
+    const protectionRuleMap = yield getProtectionRuleMap();
+    const branchProtectionRuleId = protectionRuleMap === null || protectionRuleMap === void 0 ? void 0 : protectionRuleMap.get(branchName);
     if (!branchProtectionRuleId) {
         return;
     }
@@ -388,9 +400,9 @@ exports.getSettings = getSettings;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.notEmpty = void 0;
-function notEmpty(value) {
+const notEmpty = (value) => {
     return value !== null && value !== undefined;
-}
+};
 exports.notEmpty = notEmpty;
 
 
