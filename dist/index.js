@@ -25,15 +25,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.processBranches = void 0;
 const core = __importStar(__nccwpck_require__(2186));
@@ -42,26 +33,25 @@ const context_1 = __nccwpck_require__(3842);
 const octoql_1 = __nccwpck_require__(2866);
 const settings_1 = __nccwpck_require__(2286);
 const utils_1 = __nccwpck_require__(918);
-const processBranches = () => __awaiter(void 0, void 0, void 0, function* () {
+const processBranches = async () => {
     const { branches } = settings_1.getSettings();
     if (!branches) {
         core.warning('No branch protection rules specified!');
         return;
     }
-    yield Promise.all(Object.entries(branches).map(([branchName, protectionRules]) => __awaiter(void 0, void 0, void 0, function* () { return setProtectionRules(branchName, protectionRules); })));
-});
+    await Promise.all(Object.entries(branches).map(async ([branchName, protectionRules]) => setProtectionRules(branchName, protectionRules)));
+};
 exports.processBranches = processBranches;
-const setProtectionRules = (branchName, protectionRules) => __awaiter(void 0, void 0, void 0, function* () {
+const setProtectionRules = async (branchName, protectionRules) => {
     try {
-        yield deleteProtectionRule(branchName);
-        yield createProtectionRule(branchName, protectionRules);
+        await createProtectionRule(branchName, protectionRules);
     }
     catch (error) {
         core.warning(`Branch protection update failed: ${error.message}`);
     }
-});
+};
 let protectionRulePatternMap;
-const getProtectionRules = (cursor) => __awaiter(void 0, void 0, void 0, function* () {
+const getProtectionRules = async (cursor) => {
     var _a, _b;
     const request = {
         query: {
@@ -71,7 +61,10 @@ const getProtectionRules = (cursor) => __awaiter(void 0, void 0, void 0, functio
                     name: context_1.Context.repo.repo,
                 },
                 branchProtectionRules: {
-                    __args: Object.assign({ first: 100 }, (cursor && { after: cursor })),
+                    __args: {
+                        first: 100,
+                        ...(cursor && { after: cursor }),
+                    },
                     pageInfo: {
                         endCursor: true,
                         hasNextPage: true,
@@ -84,58 +77,47 @@ const getProtectionRules = (cursor) => __awaiter(void 0, void 0, void 0, functio
             },
         },
     };
-    const { repository: { branchProtectionRules }, } = yield octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
+    const { repository: { branchProtectionRules }, } = await octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
     const results = (_b = (_a = branchProtectionRules.nodes) === null || _a === void 0 ? void 0 : _a.filter(utils_1.notEmpty)) !== null && _b !== void 0 ? _b : [];
     if (branchProtectionRules.pageInfo.hasNextPage) {
-        const recurse = yield getProtectionRules(branchProtectionRules.pageInfo.endCursor);
+        const recurse = await getProtectionRules(branchProtectionRules.pageInfo.endCursor);
         results.push(...recurse);
     }
     return results;
-});
-const getProtectionRuleMap = () => __awaiter(void 0, void 0, void 0, function* () {
+};
+const getProtectionRuleMap = async () => {
     if (protectionRulePatternMap) {
         return protectionRulePatternMap;
     }
-    const protectionRules = yield getProtectionRules();
+    const protectionRules = await getProtectionRules();
     protectionRulePatternMap = new Map(protectionRules === null || protectionRules === void 0 ? void 0 : protectionRules.map(({ id, pattern }) => [pattern, id]));
     return protectionRulePatternMap;
-});
-const deleteProtectionRule = (branchName) => __awaiter(void 0, void 0, void 0, function* () {
-    const protectionRuleMap = yield getProtectionRuleMap();
+};
+const createProtectionRule = async (branchName, protectionRules) => {
+    const protectionRuleMap = await getProtectionRuleMap();
     const branchProtectionRuleId = protectionRuleMap === null || protectionRuleMap === void 0 ? void 0 : protectionRuleMap.get(branchName);
-    if (!branchProtectionRuleId) {
-        return;
-    }
-    const request = {
-        mutation: {
-            deleteBranchProtectionRule: {
-                __args: {
-                    input: {
-                        branchProtectionRuleId,
-                    },
-                },
-                clientMutationId: true,
+    const params = {
+        __args: {
+            input: {
+                ...protectionRules,
+                pattern: branchName,
+                ...(branchProtectionRuleId
+                    ? { branchProtectionRuleId }
+                    : { repositoryId: await octoql_1.getRepositoryId() }),
             },
         },
-    };
-    return octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
-});
-const createProtectionRule = (branchName, protectionRules) => __awaiter(void 0, void 0, void 0, function* () {
-    const repositoryId = yield octoql_1.getRepositoryId();
-    const request = {
-        mutation: {
-            createBranchProtectionRule: {
-                __args: {
-                    input: Object.assign(Object.assign({}, protectionRules), { repositoryId, pattern: branchName }),
-                },
-                branchProtectionRule: {
-                    id: true,
-                },
-            },
+        branchProtectionRule: {
+            id: true,
         },
     };
+    const mutationType = branchProtectionRuleId
+        ? 'updateBranchProtectionRule'
+        : 'createBranchProtectionRule';
+    const request = {
+        mutation: Object.fromEntries([[mutationType, params]]),
+    };
     return octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
-});
+};
 
 
 /***/ }),
@@ -201,27 +183,18 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const branches_1 = __nccwpck_require__(1438);
 const repository_1 = __nccwpck_require__(1558);
-const run = () => __awaiter(void 0, void 0, void 0, function* () {
+const run = async () => {
     try {
-        yield Promise.all([repository_1.processRepository(), branches_1.processBranches()]);
+        await Promise.all([repository_1.processRepository(), branches_1.processBranches()]);
     }
     catch (error) {
         core.setFailed(error.message);
     }
-});
+};
 run();
 
 
@@ -245,19 +218,10 @@ exports.octokit = new rest_1.Octokit({
 /***/ }),
 
 /***/ 2866:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getRepositoryId = exports.octoql = void 0;
 const graphql_1 = __nccwpck_require__(8467);
@@ -269,7 +233,7 @@ exports.octoql = graphql_1.graphql.defaults({
     },
 });
 let repositoryId;
-const getRepositoryId = () => __awaiter(void 0, void 0, void 0, function* () {
+const getRepositoryId = async () => {
     if (repositoryId) {
         return repositoryId;
     }
@@ -284,9 +248,9 @@ const getRepositoryId = () => __awaiter(void 0, void 0, void 0, function* () {
             },
         },
     };
-    const { repository: { id }, } = yield exports.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
+    const { repository: { id }, } = await exports.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
     return (repositoryId = id);
-});
+};
 exports.getRepositoryId = getRepositoryId;
 
 
@@ -316,29 +280,23 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.processRepository = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const context_1 = __nccwpck_require__(3842);
 const octokit_1 = __nccwpck_require__(3258);
 const settings_1 = __nccwpck_require__(2286);
-const processRepository = () => __awaiter(void 0, void 0, void 0, function* () {
+const processRepository = async () => {
     const { repository } = settings_1.getSettings();
     if (!repository) {
         core.warning('No repository settings specified!');
         return;
     }
-    yield octokit_1.octokit.repos.update(Object.assign(Object.assign({}, context_1.Context.repo), repository));
-});
+    await octokit_1.octokit.repos.update({
+        ...context_1.Context.repo,
+        ...repository,
+    });
+};
 exports.processRepository = processRepository;
 
 

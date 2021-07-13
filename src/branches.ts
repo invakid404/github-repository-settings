@@ -28,7 +28,6 @@ const setProtectionRules = async (
   protectionRules: BranchSettings,
 ): Promise<void> => {
   try {
-    await deleteProtectionRule(branchName);
     await createProtectionRule(branchName, protectionRules);
   } catch (error) {
     core.warning(`Branch protection update failed: ${error.message}`);
@@ -96,53 +95,34 @@ const getProtectionRuleMap = async (): Promise<Map<string, string>> => {
   return protectionRulePatternMap;
 };
 
-const deleteProtectionRule = async (
-  branchName: string,
-): GraphQlResponse<{ clientMutationId: string } | undefined> => {
-  const protectionRuleMap = await getProtectionRuleMap();
-  const branchProtectionRuleId = protectionRuleMap?.get(branchName);
-
-  if (!branchProtectionRuleId) {
-    return;
-  }
-
-  const request = {
-    mutation: {
-      deleteBranchProtectionRule: {
-        __args: {
-          input: {
-            branchProtectionRuleId,
-          },
-        },
-        clientMutationId: true,
-      },
-    },
-  };
-
-  return octoql(jsonToGraphQLQuery(request));
-};
-
 const createProtectionRule = async (
   branchName: string,
   protectionRules: BranchSettings,
 ): GraphQlResponse<{ branchProtectionRule: BranchProtectionRule }> => {
-  const repositoryId = await getRepositoryId();
+  const protectionRuleMap = await getProtectionRuleMap();
+  const branchProtectionRuleId = protectionRuleMap?.get(branchName);
 
-  const request = {
-    mutation: {
-      createBranchProtectionRule: {
-        __args: {
-          input: {
-            ...protectionRules,
-            repositoryId,
-            pattern: branchName,
-          },
-        },
-        branchProtectionRule: {
-          id: true,
-        },
+  const params = {
+    __args: {
+      input: {
+        ...protectionRules,
+        pattern: branchName,
+        ...(branchProtectionRuleId
+          ? { branchProtectionRuleId }
+          : { repositoryId: await getRepositoryId() }),
       },
     },
+    branchProtectionRule: {
+      id: true,
+    },
+  };
+
+  const mutationType = branchProtectionRuleId
+    ? 'updateBranchProtectionRule'
+    : 'createBranchProtectionRule';
+
+  const request = {
+    mutation: Object.fromEntries([[mutationType, params]]),
   };
 
   return octoql(jsonToGraphQLQuery(request));
