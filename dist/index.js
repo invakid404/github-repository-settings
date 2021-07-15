@@ -32,6 +32,7 @@ const json_to_graphql_query_1 = __nccwpck_require__(6450);
 const context_1 = __nccwpck_require__(3842);
 const octoql_1 = __nccwpck_require__(2866);
 const settings_1 = __nccwpck_require__(2286);
+const users_1 = __nccwpck_require__(7242);
 const utils_1 = __nccwpck_require__(918);
 const processBranches = async () => {
     const { branches } = settings_1.getSettings();
@@ -94,12 +95,14 @@ const getProtectionRuleMap = async () => {
     return protectionRulePatternMap;
 };
 const createProtectionRule = async (branchName, protectionRules) => {
+    var _a, _b;
     const protectionRuleMap = await getProtectionRuleMap();
     const branchProtectionRuleId = protectionRuleMap === null || protectionRuleMap === void 0 ? void 0 : protectionRuleMap.get(branchName);
     const params = {
         __args: {
             input: {
                 ...protectionRules,
+                pushActorIds: await Promise.all((_b = (_a = protectionRules.pushActorIds) === null || _a === void 0 ? void 0 : _a.map(async (login) => users_1.getUserId(login))) !== null && _b !== void 0 ? _b : []),
                 pattern: branchName,
                 ...(branchProtectionRuleId
                     ? { branchProtectionRuleId }
@@ -345,6 +348,34 @@ const getSettings = () => {
     return (settings = yaml.parse(settingsContent));
 };
 exports.getSettings = getSettings;
+
+
+/***/ }),
+
+/***/ 7242:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getUserId = void 0;
+const json_to_graphql_query_1 = __nccwpck_require__(6450);
+const octoql_1 = __nccwpck_require__(2866);
+const getUserId = async (login) => {
+    const request = {
+        query: {
+            user: {
+                __args: {
+                    login,
+                },
+                id: true,
+            },
+        },
+    };
+    const { user: { id }, } = await octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
+    return id;
+};
+exports.getUserId = getUserId;
 
 
 /***/ }),
