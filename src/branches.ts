@@ -103,32 +103,32 @@ const createProtectionRule = async (
   const protectionRuleMap = await getProtectionRuleMap();
   const branchProtectionRuleId = protectionRuleMap?.get(branchName);
 
-  const params = {
-    __args: {
-      input: {
-        ...protectionRules,
-        pushActorIds: await Promise.all(
-          protectionRules.pushActorIds?.map(async (login) =>
-            getUserId(login),
-          ) ?? [],
-        ),
-        pattern: branchName,
-        ...(branchProtectionRuleId
-          ? { branchProtectionRuleId }
-          : { repositoryId: await getRepositoryId() }),
-      },
-    },
-    branchProtectionRule: {
-      id: true,
-    },
-  };
-
   const mutationType = branchProtectionRuleId
     ? 'updateBranchProtectionRule'
     : 'createBranchProtectionRule';
 
   const request = {
-    mutation: Object.fromEntries([[mutationType, params]]),
+    mutation: {
+      [mutationType]: {
+        __args: {
+          input: {
+            ...protectionRules,
+            pushActorIds: await Promise.all(
+              protectionRules.pushActorIds?.map(async (login) =>
+                getUserId(login),
+              ) ?? [],
+            ),
+            pattern: branchName,
+            ...(branchProtectionRuleId
+              ? { branchProtectionRuleId }
+              : { repositoryId: await getRepositoryId() }),
+          },
+        },
+        branchProtectionRule: {
+          id: true,
+        },
+      },
+    },
   };
 
   return octoql(jsonToGraphQLQuery(request));

@@ -98,26 +98,27 @@ const createProtectionRule = async (branchName, protectionRules) => {
     var _a, _b;
     const protectionRuleMap = await getProtectionRuleMap();
     const branchProtectionRuleId = protectionRuleMap === null || protectionRuleMap === void 0 ? void 0 : protectionRuleMap.get(branchName);
-    const params = {
-        __args: {
-            input: {
-                ...protectionRules,
-                pushActorIds: await Promise.all((_b = (_a = protectionRules.pushActorIds) === null || _a === void 0 ? void 0 : _a.map(async (login) => users_1.getUserId(login))) !== null && _b !== void 0 ? _b : []),
-                pattern: branchName,
-                ...(branchProtectionRuleId
-                    ? { branchProtectionRuleId }
-                    : { repositoryId: await octoql_1.getRepositoryId() }),
-            },
-        },
-        branchProtectionRule: {
-            id: true,
-        },
-    };
     const mutationType = branchProtectionRuleId
         ? 'updateBranchProtectionRule'
         : 'createBranchProtectionRule';
     const request = {
-        mutation: Object.fromEntries([[mutationType, params]]),
+        mutation: {
+            [mutationType]: {
+                __args: {
+                    input: {
+                        ...protectionRules,
+                        pushActorIds: await Promise.all((_b = (_a = protectionRules.pushActorIds) === null || _a === void 0 ? void 0 : _a.map(async (login) => users_1.getUserId(login))) !== null && _b !== void 0 ? _b : []),
+                        pattern: branchName,
+                        ...(branchProtectionRuleId
+                            ? { branchProtectionRuleId }
+                            : { repositoryId: await octoql_1.getRepositoryId() }),
+                    },
+                },
+                branchProtectionRule: {
+                    id: true,
+                },
+            },
+        },
     };
     return octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
 };
@@ -361,7 +362,12 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getUserId = void 0;
 const json_to_graphql_query_1 = __nccwpck_require__(6450);
 const octoql_1 = __nccwpck_require__(2866);
+const userMap = {};
 const getUserId = async (login) => {
+    const cachedId = userMap[login];
+    if (cachedId) {
+        return cachedId;
+    }
     const request = {
         query: {
             user: {
@@ -373,7 +379,7 @@ const getUserId = async (login) => {
         },
     };
     const { user: { id }, } = await octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
-    return id;
+    return (userMap[login] = id);
 };
 exports.getUserId = getUserId;
 
