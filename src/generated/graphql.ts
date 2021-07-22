@@ -17658,12 +17658,18 @@ export type SponsorsListing = Node & {
   /** The full description of the listing rendered to HTML. */
   fullDescriptionHTML: Scalars['HTML'];
   id: Scalars['ID'];
+  /** Whether this listing is publicly visible. */
+  isPublic: Scalars['Boolean'];
   /** The listing's full name. */
   name: Scalars['String'];
+  /** A future date on which this listing is eligible to receive a payout. */
+  nextPayoutDate?: Maybe<Scalars['Date']>;
   /** The short description of the listing. */
   shortDescription: Scalars['String'];
   /** The short name of the listing. */
   slug: Scalars['String'];
+  /** The entity this listing represents who can be sponsored on GitHub Sponsors. */
+  sponsorable: Sponsorable;
   /** The published tiers for this GitHub Sponsors listing. */
   tiers?: Maybe<SponsorsTierConnection>;
 };
@@ -18003,7 +18009,7 @@ export type StatusCheckRollupContextEdge = {
 };
 
 /** Represents an individual commit status context */
-export type StatusContext = Node & RequirableByPullRequest & {
+export type StatusContext = RequirableByPullRequest & Node & {
   __typename?: 'StatusContext';
   /** The avatar of the OAuth application or the user that created the status */
   avatarUrl?: Maybe<Scalars['URI']>;
@@ -29890,9 +29896,12 @@ export type SponsorsListingResolvers<ContextType = any, ParentType extends Resol
   fullDescription?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   fullDescriptionHTML?: Resolver<ResolversTypes['HTML'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  isPublic?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  nextPayoutDate?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   shortDescription?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   slug?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  sponsorable?: Resolver<ResolversTypes['Sponsorable'], ParentType, ContextType>;
   tiers?: Resolver<Maybe<ResolversTypes['SponsorsTierConnection']>, ParentType, ContextType, RequireFields<SponsorsListingTiersArgs, 'orderBy'>>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
