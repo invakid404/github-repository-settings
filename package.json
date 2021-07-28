@@ -35,7 +35,7 @@
   "devDependencies": {
     "@graphql-codegen/cli": "1.21.7",
     "@octokit/graphql-schema": "^10.56.0",
-    "@types/node": "^16.4.4",
+    "@types/node": "^16.4.6",
     "@typescript-eslint/parser": "^4.28.5",
     "@vercel/ncc": "^0.29.0",
     "eslint": "^7.31.0",
