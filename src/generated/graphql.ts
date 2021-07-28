@@ -16663,7 +16663,7 @@ export type RepositoryVisibilityChangeEnableAuditEntry = Node & AuditEntry & Ent
   userUrl?: Maybe<Scalars['URI']>;
 };
 
-/** A alert for a repository with an affected vulnerability. */
+/** A Dependabot alert for a repository with a dependency affected by a security vulnerability. */
 export type RepositoryVulnerabilityAlert = Node & RepositoryNode & {
   __typename?: 'RepositoryVulnerabilityAlert';
   /** When was the alert created? */
