@@ -4146,7 +4146,7 @@ export type DiscussionCategoryEdge = {
 };
 
 /** A comment on a discussion. */
-export type DiscussionComment = Node & Comment & Deletable & Minimizable & Updatable & UpdatableComment & Reactable & Votable & {
+export type DiscussionComment = Comment & Deletable & Minimizable & Updatable & UpdatableComment & Reactable & Votable & Node & {
   __typename?: 'DiscussionComment';
   /** The actor who authored the comment. */
   author?: Maybe<Actor>;
@@ -10710,6 +10710,8 @@ export type Organization = Node & Actor & PackageOwner & ProjectOwner & Reposito
   resourcePath: Scalars['URI'];
   /** The Organization's SAML identity providers */
   samlIdentityProvider?: Maybe<OrganizationIdentityProvider>;
+  /** List of sponsors for this user or organization. */
+  sponsors: SponsorConnection;
   /** Events involving this sponsorable, such as new sponsorships. */
   sponsorsActivities: SponsorsActivityConnection;
   /** The GitHub Sponsors listing for this user or organization. */
@@ -10926,6 +10928,17 @@ export type OrganizationRepositoryDiscussionsArgs = {
   orderBy?: Maybe<DiscussionOrder>;
   repositoryId?: Maybe<Scalars['ID']>;
   answered?: Maybe<Scalars['Boolean']>;
+};
+
+
+/** An account on GitHub, with one or more owners, that has repositories, members and teams. */
+export type OrganizationSponsorsArgs = {
+  after?: Maybe<Scalars['String']>;
+  before?: Maybe<Scalars['String']>;
+  first?: Maybe<Scalars['Int']>;
+  last?: Maybe<Scalars['Int']>;
+  tierId?: Maybe<Scalars['ID']>;
+  orderBy?: Maybe<SponsorOrder>;
 };
 
 
@@ -14108,6 +14121,8 @@ export type Release = Node & UniformResourceLocatable & Reactable & {
   isLatest: Scalars['Boolean'];
   /** Whether or not the release is a prerelease */
   isPrerelease: Scalars['Boolean'];
+  /** A list of users mentioned in the release description */
+  mentions?: Maybe<UserConnection>;
   /** The title of the release. */
   name?: Maybe<Scalars['String']>;
   /** Identifies the date and time when the release was created. */
@@ -14136,6 +14151,15 @@ export type Release = Node & UniformResourceLocatable & Reactable & {
   url: Scalars['URI'];
   /** Can user react to this subject */
   viewerCanReact: Scalars['Boolean'];
+};
+
+
+/** A release contains the content for a release. */
+export type ReleaseMentionsArgs = {
+  after?: Maybe<Scalars['String']>;
+  before?: Maybe<Scalars['String']>;
+  first?: Maybe<Scalars['Int']>;
+  last?: Maybe<Scalars['Int']>;
 };
 
 
@@ -15555,6 +15579,8 @@ export type Repository = Node & ProjectOwner & PackageOwner & Subscribable & Sta
   __typename?: 'Repository';
   /** A list of users that can be assigned to issues in this repository. */
   assignableUsers: UserConnection;
+  /** Whether or not Auto-merge can be enabled on pull requests in this repository. */
+  autoMergeAllowed: Scalars['Boolean'];
   /** A list of branch protection rules for this repository. */
   branchProtectionRules: BranchProtectionRuleConnection;
   /** Returns the code of conduct for this repository */
@@ -17440,6 +17466,44 @@ export type SmimeSignature = GitSignature & {
 /** Entities that can sponsor others via GitHub Sponsors */
 export type Sponsor = Organization | User;
 
+/** The connection type for Sponsor. */
+export type SponsorConnection = {
+  __typename?: 'SponsorConnection';
+  /** A list of edges. */
+  edges?: Maybe<Array<Maybe<SponsorEdge>>>;
+  /** A list of nodes. */
+  nodes?: Maybe<Array<Maybe<Sponsor>>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  /** Identifies the total count of items in the connection. */
+  totalCount: Scalars['Int'];
+};
+
+/** Represents a user or organization who is sponsoring someone in GitHub Sponsors. */
+export type SponsorEdge = {
+  __typename?: 'SponsorEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String'];
+  /** The item at the end of the edge. */
+  node?: Maybe<Sponsor>;
+};
+
+/** Ordering options for connections to get sponsor entities for GitHub Sponsors. */
+export type SponsorOrder = {
+  /** The field to order sponsor entities by. */
+  field: SponsorOrderField;
+  /** The ordering direction. */
+  direction: OrderDirection;
+};
+
+/** Properties by which sponsor connections can be ordered. */
+export enum SponsorOrderField {
+  /** Order sponsorable entities by login (username). */
+  Login = 'LOGIN',
+  /** Order sponsors by their relevance to the viewer. */
+  Relevance = 'RELEVANCE'
+}
+
 /** Entities that can be sponsored through GitHub Sponsors */
 export type Sponsorable = {
   /** True if this user/organization has a GitHub Sponsors listing. */
@@ -17448,6 +17512,8 @@ export type Sponsorable = {
   isSponsoredBy: Scalars['Boolean'];
   /** True if the viewer is sponsored by this user/organization. */
   isSponsoringViewer: Scalars['Boolean'];
+  /** List of sponsors for this user or organization. */
+  sponsors: SponsorConnection;
   /** Events involving this sponsorable, such as new sponsorships. */
   sponsorsActivities: SponsorsActivityConnection;
   /** The GitHub Sponsors listing for this user or organization. */
@@ -17468,6 +17534,17 @@ export type Sponsorable = {
 /** Entities that can be sponsored through GitHub Sponsors */
 export type SponsorableIsSponsoredByArgs = {
   accountLogin: Scalars['String'];
+};
+
+
+/** Entities that can be sponsored through GitHub Sponsors */
+export type SponsorableSponsorsArgs = {
+  after?: Maybe<Scalars['String']>;
+  before?: Maybe<Scalars['String']>;
+  first?: Maybe<Scalars['Int']>;
+  last?: Maybe<Scalars['Int']>;
+  tierId?: Maybe<Scalars['ID']>;
+  orderBy?: Maybe<SponsorOrder>;
 };
 
 
@@ -20568,6 +20645,8 @@ export type User = Node & Actor & PackageOwner & ProjectOwner & RepositoryDiscus
   resourcePath: Scalars['URI'];
   /** Replies this user has saved */
   savedReplies?: Maybe<SavedReplyConnection>;
+  /** List of sponsors for this user or organization. */
+  sponsors: SponsorConnection;
   /** Events involving this sponsorable, such as new sponsorships. */
   sponsorsActivities: SponsorsActivityConnection;
   /** The GitHub Sponsors listing for this user or organization. */
@@ -20883,6 +20962,17 @@ export type UserSavedRepliesArgs = {
   first?: Maybe<Scalars['Int']>;
   last?: Maybe<Scalars['Int']>;
   orderBy?: Maybe<SavedReplyOrder>;
+};
+
+
+/** A user is an individual's account on GitHub that owns repositories and can make new content. */
+export type UserSponsorsArgs = {
+  after?: Maybe<Scalars['String']>;
+  before?: Maybe<Scalars['String']>;
+  first?: Maybe<Scalars['Int']>;
+  last?: Maybe<Scalars['Int']>;
+  tierId?: Maybe<Scalars['ID']>;
+  orderBy?: Maybe<SponsorOrder>;
 };
 
 
@@ -22228,6 +22318,10 @@ export type ResolversTypes = {
   SetUserInteractionLimitPayload: ResolverTypeWrapper<SetUserInteractionLimitPayload>;
   SmimeSignature: ResolverTypeWrapper<SmimeSignature>;
   Sponsor: ResolversTypes['Organization'] | ResolversTypes['User'];
+  SponsorConnection: ResolverTypeWrapper<Omit<SponsorConnection, 'nodes'> & { nodes?: Maybe<Array<Maybe<ResolversTypes['Sponsor']>>> }>;
+  SponsorEdge: ResolverTypeWrapper<Omit<SponsorEdge, 'node'> & { node?: Maybe<ResolversTypes['Sponsor']> }>;
+  SponsorOrder: SponsorOrder;
+  SponsorOrderField: SponsorOrderField;
   Sponsorable: ResolversTypes['Organization'] | ResolversTypes['User'];
   SponsorableItem: ResolversTypes['Organization'] | ResolversTypes['User'];
   SponsorableItemConnection: ResolverTypeWrapper<Omit<SponsorableItemConnection, 'nodes'> & { nodes?: Maybe<Array<Maybe<ResolversTypes['SponsorableItem']>>> }>;
@@ -23196,6 +23290,9 @@ export type ResolversParentTypes = {
   SetUserInteractionLimitPayload: SetUserInteractionLimitPayload;
   SmimeSignature: SmimeSignature;
   Sponsor: ResolversParentTypes['Organization'] | ResolversParentTypes['User'];
+  SponsorConnection: Omit<SponsorConnection, 'nodes'> & { nodes?: Maybe<Array<Maybe<ResolversParentTypes['Sponsor']>>> };
+  SponsorEdge: Omit<SponsorEdge, 'node'> & { node?: Maybe<ResolversParentTypes['Sponsor']> };
+  SponsorOrder: SponsorOrder;
   Sponsorable: ResolversParentTypes['Organization'] | ResolversParentTypes['User'];
   SponsorableItem: ResolversParentTypes['Organization'] | ResolversParentTypes['User'];
   SponsorableItemConnection: Omit<SponsorableItemConnection, 'nodes'> & { nodes?: Maybe<Array<Maybe<ResolversParentTypes['SponsorableItem']>>> };
@@ -27313,6 +27410,7 @@ export type OrganizationResolvers<ContextType = any, ParentType extends Resolver
   requiresTwoFactorAuthentication?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   resourcePath?: Resolver<ResolversTypes['URI'], ParentType, ContextType>;
   samlIdentityProvider?: Resolver<Maybe<ResolversTypes['OrganizationIdentityProvider']>, ParentType, ContextType>;
+  sponsors?: Resolver<ResolversTypes['SponsorConnection'], ParentType, ContextType, RequireFields<OrganizationSponsorsArgs, 'orderBy'>>;
   sponsorsActivities?: Resolver<ResolversTypes['SponsorsActivityConnection'], ParentType, ContextType, RequireFields<OrganizationSponsorsActivitiesArgs, 'period' | 'orderBy'>>;
   sponsorsListing?: Resolver<Maybe<ResolversTypes['SponsorsListing']>, ParentType, ContextType>;
   sponsorshipForViewerAsSponsor?: Resolver<Maybe<ResolversTypes['Sponsorship']>, ParentType, ContextType>;
@@ -28507,6 +28605,7 @@ export type ReleaseResolvers<ContextType = any, ParentType extends ResolversPare
   isDraft?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isLatest?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isPrerelease?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  mentions?: Resolver<Maybe<ResolversTypes['UserConnection']>, ParentType, ContextType, RequireFields<ReleaseMentionsArgs, never>>;
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   publishedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   reactionGroups?: Resolver<Maybe<Array<ResolversTypes['ReactionGroup']>>, ParentType, ContextType>;
@@ -29185,6 +29284,7 @@ export type RepoRemoveTopicAuditEntryResolvers<ContextType = any, ParentType ext
 
 export type RepositoryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Repository'] = ResolversParentTypes['Repository']> = {
   assignableUsers?: Resolver<ResolversTypes['UserConnection'], ParentType, ContextType, RequireFields<RepositoryAssignableUsersArgs, never>>;
+  autoMergeAllowed?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   branchProtectionRules?: Resolver<ResolversTypes['BranchProtectionRuleConnection'], ParentType, ContextType, RequireFields<RepositoryBranchProtectionRulesArgs, never>>;
   codeOfConduct?: Resolver<Maybe<ResolversTypes['CodeOfConduct']>, ParentType, ContextType>;
   collaborators?: Resolver<Maybe<ResolversTypes['RepositoryCollaboratorConnection']>, ParentType, ContextType, RequireFields<RepositoryCollaboratorsArgs, never>>;
@@ -29824,11 +29924,26 @@ export type SponsorResolvers<ContextType = any, ParentType extends ResolversPare
   __resolveType: TypeResolveFn<'Organization' | 'User', ParentType, ContextType>;
 };
 
+export type SponsorConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['SponsorConnection'] = ResolversParentTypes['SponsorConnection']> = {
+  edges?: Resolver<Maybe<Array<Maybe<ResolversTypes['SponsorEdge']>>>, ParentType, ContextType>;
+  nodes?: Resolver<Maybe<Array<Maybe<ResolversTypes['Sponsor']>>>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type SponsorEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['SponsorEdge'] = ResolversParentTypes['SponsorEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<Maybe<ResolversTypes['Sponsor']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type SponsorableResolvers<ContextType = any, ParentType extends ResolversParentTypes['Sponsorable'] = ResolversParentTypes['Sponsorable']> = {
   __resolveType: TypeResolveFn<'Organization' | 'User', ParentType, ContextType>;
   hasSponsorsListing?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isSponsoredBy?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<SponsorableIsSponsoredByArgs, 'accountLogin'>>;
   isSponsoringViewer?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  sponsors?: Resolver<ResolversTypes['SponsorConnection'], ParentType, ContextType, RequireFields<SponsorableSponsorsArgs, 'orderBy'>>;
   sponsorsActivities?: Resolver<ResolversTypes['SponsorsActivityConnection'], ParentType, ContextType, RequireFields<SponsorableSponsorsActivitiesArgs, 'period' | 'orderBy'>>;
   sponsorsListing?: Resolver<Maybe<ResolversTypes['SponsorsListing']>, ParentType, ContextType>;
   sponsorshipForViewerAsSponsor?: Resolver<Maybe<ResolversTypes['Sponsorship']>, ParentType, ContextType>;
@@ -31002,6 +31117,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   repositoryDiscussions?: Resolver<ResolversTypes['DiscussionConnection'], ParentType, ContextType, RequireFields<UserRepositoryDiscussionsArgs, 'orderBy' | 'answered'>>;
   resourcePath?: Resolver<ResolversTypes['URI'], ParentType, ContextType>;
   savedReplies?: Resolver<Maybe<ResolversTypes['SavedReplyConnection']>, ParentType, ContextType, RequireFields<UserSavedRepliesArgs, 'orderBy'>>;
+  sponsors?: Resolver<ResolversTypes['SponsorConnection'], ParentType, ContextType, RequireFields<UserSponsorsArgs, 'orderBy'>>;
   sponsorsActivities?: Resolver<ResolversTypes['SponsorsActivityConnection'], ParentType, ContextType, RequireFields<UserSponsorsActivitiesArgs, 'period' | 'orderBy'>>;
   sponsorsListing?: Resolver<Maybe<ResolversTypes['SponsorsListing']>, ParentType, ContextType>;
   sponsorshipForViewerAsSponsor?: Resolver<Maybe<ResolversTypes['Sponsorship']>, ParentType, ContextType>;
@@ -31777,6 +31893,8 @@ export type Resolvers<ContextType = any> = {
   SetUserInteractionLimitPayload?: SetUserInteractionLimitPayloadResolvers<ContextType>;
   SmimeSignature?: SmimeSignatureResolvers<ContextType>;
   Sponsor?: SponsorResolvers<ContextType>;
+  SponsorConnection?: SponsorConnectionResolvers<ContextType>;
+  SponsorEdge?: SponsorEdgeResolvers<ContextType>;
   Sponsorable?: SponsorableResolvers<ContextType>;
   SponsorableItem?: SponsorableItemResolvers<ContextType>;
   SponsorableItemConnection?: SponsorableItemConnectionResolvers<ContextType>;
