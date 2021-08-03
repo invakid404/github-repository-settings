@@ -33,7 +33,7 @@
     "yaml": "^1.10.2"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "1.21.8",
+    "@graphql-codegen/cli": "2.0.1",
     "@octokit/graphql-schema": "^10.58.0",
     "@types/node": "^16.4.10",
     "@typescript-eslint/parser": "^4.29.0",
