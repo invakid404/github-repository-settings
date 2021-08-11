@@ -10710,6 +10710,8 @@ export type Organization = Node & Actor & PackageOwner & ProjectOwner & Reposito
   resourcePath: Scalars['URI'];
   /** The Organization's SAML identity providers */
   samlIdentityProvider?: Maybe<OrganizationIdentityProvider>;
+  /** List of users and organizations this entity is sponsoring. */
+  sponsoring: SponsorConnection;
   /** List of sponsors for this user or organization. */
   sponsors: SponsorConnection;
   /** Events involving this sponsorable, such as new sponsorships. */
@@ -10928,6 +10930,16 @@ export type OrganizationRepositoryDiscussionsArgs = {
   orderBy?: Maybe<DiscussionOrder>;
   repositoryId?: Maybe<Scalars['ID']>;
   answered?: Maybe<Scalars['Boolean']>;
+};
+
+
+/** An account on GitHub, with one or more owners, that has repositories, members and teams. */
+export type OrganizationSponsoringArgs = {
+  after?: Maybe<Scalars['String']>;
+  before?: Maybe<Scalars['String']>;
+  first?: Maybe<Scalars['Int']>;
+  last?: Maybe<Scalars['Int']>;
+  orderBy?: Maybe<SponsorOrder>;
 };
 
 
@@ -13125,7 +13137,7 @@ export type PullRequestReviewThread = Node & {
   /** The side of the diff on which this thread was placed. */
   diffSide: DiffSide;
   id: Scalars['ID'];
-  /** Whether or not the thread has been collapsed (outdated or resolved) */
+  /** Whether or not the thread has been collapsed (resolved) */
   isCollapsed: Scalars['Boolean'];
   /** Indicates whether this thread was outdated by newer changes. */
   isOutdated: Scalars['Boolean'];
@@ -17512,6 +17524,8 @@ export type Sponsorable = {
   isSponsoredBy: Scalars['Boolean'];
   /** True if the viewer is sponsored by this user/organization. */
   isSponsoringViewer: Scalars['Boolean'];
+  /** List of users and organizations this entity is sponsoring. */
+  sponsoring: SponsorConnection;
   /** List of sponsors for this user or organization. */
   sponsors: SponsorConnection;
   /** Events involving this sponsorable, such as new sponsorships. */
@@ -17534,6 +17548,16 @@ export type Sponsorable = {
 /** Entities that can be sponsored through GitHub Sponsors */
 export type SponsorableIsSponsoredByArgs = {
   accountLogin: Scalars['String'];
+};
+
+
+/** Entities that can be sponsored through GitHub Sponsors */
+export type SponsorableSponsoringArgs = {
+  after?: Maybe<Scalars['String']>;
+  before?: Maybe<Scalars['String']>;
+  first?: Maybe<Scalars['Int']>;
+  last?: Maybe<Scalars['Int']>;
+  orderBy?: Maybe<SponsorOrder>;
 };
 
 
@@ -20645,6 +20669,8 @@ export type User = Node & Actor & PackageOwner & ProjectOwner & RepositoryDiscus
   resourcePath: Scalars['URI'];
   /** Replies this user has saved */
   savedReplies?: Maybe<SavedReplyConnection>;
+  /** List of users and organizations this entity is sponsoring. */
+  sponsoring: SponsorConnection;
   /** List of sponsors for this user or organization. */
   sponsors: SponsorConnection;
   /** Events involving this sponsorable, such as new sponsorships. */
@@ -20962,6 +20988,16 @@ export type UserSavedRepliesArgs = {
   first?: Maybe<Scalars['Int']>;
   last?: Maybe<Scalars['Int']>;
   orderBy?: Maybe<SavedReplyOrder>;
+};
+
+
+/** A user is an individual's account on GitHub that owns repositories and can make new content. */
+export type UserSponsoringArgs = {
+  after?: Maybe<Scalars['String']>;
+  before?: Maybe<Scalars['String']>;
+  first?: Maybe<Scalars['Int']>;
+  last?: Maybe<Scalars['Int']>;
+  orderBy?: Maybe<SponsorOrder>;
 };
 
 
@@ -21386,21 +21422,7 @@ export type ResolverTypeWrapper<T> = Promise<T> | T;
 export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
   resolve: ResolverFn<TResult, TParent, TContext, TArgs>;
 };
-
-export type LegacyStitchingResolver<TResult, TParent, TContext, TArgs> = {
-  fragment: string;
-  resolve: ResolverFn<TResult, TParent, TContext, TArgs>;
-};
-
-export type NewStitchingResolver<TResult, TParent, TContext, TArgs> = {
-  selectionSet: string;
-  resolve: ResolverFn<TResult, TParent, TContext, TArgs>;
-};
-export type StitchingResolver<TResult, TParent, TContext, TArgs> = LegacyStitchingResolver<TResult, TParent, TContext, TArgs> | NewStitchingResolver<TResult, TParent, TContext, TArgs>;
-export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> =
-  | ResolverFn<TResult, TParent, TContext, TArgs>
-  | ResolverWithResolve<TResult, TParent, TContext, TArgs>
-  | StitchingResolver<TResult, TParent, TContext, TArgs>;
+export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> = ResolverFn<TResult, TParent, TContext, TArgs> | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
 
 export type ResolverFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
@@ -27410,6 +27432,7 @@ export type OrganizationResolvers<ContextType = any, ParentType extends Resolver
   requiresTwoFactorAuthentication?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   resourcePath?: Resolver<ResolversTypes['URI'], ParentType, ContextType>;
   samlIdentityProvider?: Resolver<Maybe<ResolversTypes['OrganizationIdentityProvider']>, ParentType, ContextType>;
+  sponsoring?: Resolver<ResolversTypes['SponsorConnection'], ParentType, ContextType, RequireFields<OrganizationSponsoringArgs, 'orderBy'>>;
   sponsors?: Resolver<ResolversTypes['SponsorConnection'], ParentType, ContextType, RequireFields<OrganizationSponsorsArgs, 'orderBy'>>;
   sponsorsActivities?: Resolver<ResolversTypes['SponsorsActivityConnection'], ParentType, ContextType, RequireFields<OrganizationSponsorsActivitiesArgs, 'period' | 'orderBy'>>;
   sponsorsListing?: Resolver<Maybe<ResolversTypes['SponsorsListing']>, ParentType, ContextType>;
@@ -29943,6 +29966,7 @@ export type SponsorableResolvers<ContextType = any, ParentType extends Resolvers
   hasSponsorsListing?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isSponsoredBy?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<SponsorableIsSponsoredByArgs, 'accountLogin'>>;
   isSponsoringViewer?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  sponsoring?: Resolver<ResolversTypes['SponsorConnection'], ParentType, ContextType, RequireFields<SponsorableSponsoringArgs, 'orderBy'>>;
   sponsors?: Resolver<ResolversTypes['SponsorConnection'], ParentType, ContextType, RequireFields<SponsorableSponsorsArgs, 'orderBy'>>;
   sponsorsActivities?: Resolver<ResolversTypes['SponsorsActivityConnection'], ParentType, ContextType, RequireFields<SponsorableSponsorsActivitiesArgs, 'period' | 'orderBy'>>;
   sponsorsListing?: Resolver<Maybe<ResolversTypes['SponsorsListing']>, ParentType, ContextType>;
@@ -31117,6 +31141,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   repositoryDiscussions?: Resolver<ResolversTypes['DiscussionConnection'], ParentType, ContextType, RequireFields<UserRepositoryDiscussionsArgs, 'orderBy' | 'answered'>>;
   resourcePath?: Resolver<ResolversTypes['URI'], ParentType, ContextType>;
   savedReplies?: Resolver<Maybe<ResolversTypes['SavedReplyConnection']>, ParentType, ContextType, RequireFields<UserSavedRepliesArgs, 'orderBy'>>;
+  sponsoring?: Resolver<ResolversTypes['SponsorConnection'], ParentType, ContextType, RequireFields<UserSponsoringArgs, 'orderBy'>>;
   sponsors?: Resolver<ResolversTypes['SponsorConnection'], ParentType, ContextType, RequireFields<UserSponsorsArgs, 'orderBy'>>;
   sponsorsActivities?: Resolver<ResolversTypes['SponsorsActivityConnection'], ParentType, ContextType, RequireFields<UserSponsorsActivitiesArgs, 'period' | 'orderBy'>>;
   sponsorsListing?: Resolver<Maybe<ResolversTypes['SponsorsListing']>, ParentType, ContextType>;
@@ -32041,9 +32066,3 @@ export type Resolvers<ContextType = any> = {
   X509Certificate?: GraphQLScalarType;
 };
 
-
-/**
- * @deprecated
- * Use "Resolvers" root object instead. If you wish to get "IResolvers", add "typesPrefix: I" to your config.
- */
-export type IResolvers<ContextType = any> = Resolvers<ContextType>;
