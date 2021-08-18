@@ -1,5 +1,4 @@
 import * as core from '@actions/core';
-import { GraphQlResponse } from '@octokit/graphql/dist-types/types';
 import { jsonToGraphQLQuery } from 'json-to-graphql-query';
 
 import { Context } from './context';
@@ -99,7 +98,7 @@ const getProtectionRuleMap = async (): Promise<Map<string, string>> => {
 const createProtectionRule = async (
   branchName: string,
   protectionRules: BranchSettings,
-): GraphQlResponse<{ branchProtectionRule: BranchProtectionRule }> => {
+): Promise<{ branchProtectionRule: BranchProtectionRule }> => {
   const protectionRuleMap = await getProtectionRuleMap();
   const branchProtectionRuleId = protectionRuleMap?.get(branchName);
 

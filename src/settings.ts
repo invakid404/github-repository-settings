@@ -1,4 +1,4 @@
-import { RestEndpointMethodTypes } from '@octokit/rest';
+import { RestEndpointMethodTypes } from '@octokit/rest/dist-types';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'yaml';
