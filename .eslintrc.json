@@ -48,6 +48,9 @@
     "@typescript-eslint/restrict-plus-operands": "error",
     "@typescript-eslint/type-annotation-spacing": "error",
     "@typescript-eslint/unbound-method": "error",
+    "sort-imports": "off",
+    "i18n-text/no-en": "off",
+    "import/no-unresolved": "off",
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error"
   },
