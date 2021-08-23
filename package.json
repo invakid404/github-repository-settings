@@ -37,7 +37,7 @@
     "@octokit/graphql-schema": "^10.62.0",
     "@types/node": "^16.6.1",
     "@typescript-eslint/parser": "^4.29.2",
-    "@vercel/ncc": "^0.29.1",
+    "@vercel/ncc": "^0.29.2",
     "eslint": "^7.32.0",
     "eslint-plugin-github": "^4.2.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
