@@ -1,0 +1,23 @@
+name: Check for Conflicts
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - synchronize
+
+jobs:
+  conflicts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - uses: invakid404/merge-conflict-commenter@v0.0.0
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          dirtyLabel: "has conflicts"
+          message: "This PR has conflicts!"
