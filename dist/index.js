@@ -35,7 +35,7 @@ const settings_1 = __nccwpck_require__(2286);
 const users_1 = __nccwpck_require__(7242);
 const utils_1 = __nccwpck_require__(918);
 const processBranches = async () => {
-    const { branches } = settings_1.getSettings();
+    const { branches } = (0, settings_1.getSettings)();
     if (!branches) {
         core.warning('No branch protection rules specified!');
         return;
@@ -48,7 +48,7 @@ const setProtectionRules = async (branchName, protectionRules) => {
         await createProtectionRule(branchName, protectionRules);
     }
     catch (error) {
-        core.warning(`Branch protection update failed: ${error.message}`);
+        core.warning(`Branch protection update failed: ${String(error)}`);
     }
 };
 let protectionRulePatternMap;
@@ -78,7 +78,7 @@ const getProtectionRules = async (cursor) => {
             },
         },
     };
-    const { repository: { branchProtectionRules }, } = await octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
+    const { repository: { branchProtectionRules }, } = await (0, octoql_1.octoql)((0, json_to_graphql_query_1.jsonToGraphQLQuery)(request));
     const results = (_b = (_a = branchProtectionRules.nodes) === null || _a === void 0 ? void 0 : _a.filter(utils_1.notEmpty)) !== null && _b !== void 0 ? _b : [];
     if (branchProtectionRules.pageInfo.hasNextPage) {
         const recurse = await getProtectionRules(branchProtectionRules.pageInfo.endCursor);
@@ -107,11 +107,11 @@ const createProtectionRule = async (branchName, protectionRules) => {
                 __args: {
                     input: {
                         ...protectionRules,
-                        pushActorIds: await Promise.all((_b = (_a = protectionRules.pushActorIds) === null || _a === void 0 ? void 0 : _a.map(async (login) => users_1.getUserId(login))) !== null && _b !== void 0 ? _b : []),
+                        pushActorIds: await Promise.all((_b = (_a = protectionRules.pushActorIds) === null || _a === void 0 ? void 0 : _a.map(async (login) => (0, users_1.getUserId)(login))) !== null && _b !== void 0 ? _b : []),
                         pattern: branchName,
                         ...(branchProtectionRuleId
                             ? { branchProtectionRuleId }
-                            : { repositoryId: await octoql_1.getRepositoryId() }),
+                            : { repositoryId: await (0, octoql_1.getRepositoryId)() }),
                     },
                 },
                 branchProtectionRule: {
@@ -120,7 +120,7 @@ const createProtectionRule = async (branchName, protectionRules) => {
             },
         },
     };
-    return octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
+    return (0, octoql_1.octoql)((0, json_to_graphql_query_1.jsonToGraphQLQuery)(request));
 };
 
 
@@ -193,10 +193,10 @@ const branches_1 = __nccwpck_require__(1438);
 const repository_1 = __nccwpck_require__(1558);
 const run = async () => {
     try {
-        await Promise.all([repository_1.processRepository(), branches_1.processBranches()]);
+        await Promise.all([(0, repository_1.processRepository)(), (0, branches_1.processBranches)()]);
     }
     catch (error) {
-        core.setFailed(error.message);
+        core.setFailed(String(error));
     }
 };
 run();
@@ -252,7 +252,7 @@ const getRepositoryId = async () => {
             },
         },
     };
-    const { repository: { id }, } = await exports.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
+    const { repository: { id }, } = await (0, exports.octoql)((0, json_to_graphql_query_1.jsonToGraphQLQuery)(request));
     return (repositoryId = id);
 };
 exports.getRepositoryId = getRepositoryId;
@@ -291,7 +291,7 @@ const context_1 = __nccwpck_require__(3842);
 const octokit_1 = __nccwpck_require__(3258);
 const settings_1 = __nccwpck_require__(2286);
 const processRepository = async () => {
-    const { repository } = settings_1.getSettings();
+    const { repository } = (0, settings_1.getSettings)();
     if (!repository) {
         core.warning('No repository settings specified!');
         return;
@@ -378,7 +378,7 @@ const getUserId = async (login) => {
             },
         },
     };
-    const { user: { id }, } = await octoql_1.octoql(json_to_graphql_query_1.jsonToGraphQLQuery(request));
+    const { user: { id }, } = await (0, octoql_1.octoql)((0, json_to_graphql_query_1.jsonToGraphQLQuery)(request));
     return (userMap[login] = id);
 };
 exports.getUserId = getUserId;
@@ -534,7 +534,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
+exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
 const command_1 = __nccwpck_require__(7351);
 const file_command_1 = __nccwpck_require__(717);
 const utils_1 = __nccwpck_require__(5278);
@@ -712,19 +712,30 @@ exports.debug = debug;
 /**
  * Adds an error issue
  * @param message error issue message. Errors will be converted to string via toString()
+ * @param properties optional properties to add to the annotation.
  */
-function error(message) {
-    command_1.issue('error', message instanceof Error ? message.toString() : message);
+function error(message, properties = {}) {
+    command_1.issueCommand('error', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 exports.error = error;
 /**
- * Adds an warning issue
+ * Adds a warning issue
  * @param message warning issue message. Errors will be converted to string via toString()
+ * @param properties optional properties to add to the annotation.
  */
-function warning(message) {
-    command_1.issue('warning', message instanceof Error ? message.toString() : message);
+function warning(message, properties = {}) {
+    command_1.issueCommand('warning', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 exports.warning = warning;
+/**
+ * Adds a notice issue
+ * @param message notice issue message. Errors will be converted to string via toString()
+ * @param properties optional properties to add to the annotation.
+ */
+function notice(message, properties = {}) {
+    command_1.issueCommand('notice', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+}
+exports.notice = notice;
 /**
  * Writes info to log with console.log.
  * @param message info message
@@ -858,7 +869,7 @@ exports.issueCommand = issueCommand;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.toCommandValue = void 0;
+exports.toCommandProperties = exports.toCommandValue = void 0;
 /**
  * Sanitizes an input into a string so it can be passed into issueCommand safely
  * @param input input to sanitize into a string
@@ -873,6 +884,25 @@ function toCommandValue(input) {
     return JSON.stringify(input);
 }
 exports.toCommandValue = toCommandValue;
+/**
+ *
+ * @param annotationProperties
+ * @returns The command properties to send with the actual annotation command
+ * See IssueCommandProperties: https://github.com/actions/runner/blob/main/src/Runner.Worker/ActionCommandManager.cs#L646
+ */
+function toCommandProperties(annotationProperties) {
+    if (!Object.keys(annotationProperties).length) {
+        return {};
+    }
+    return {
+        title: annotationProperties.title,
+        line: annotationProperties.startLine,
+        endLine: annotationProperties.endLine,
+        col: annotationProperties.startColumn,
+        endColumn: annotationProperties.endColumn
+    };
+}
+exports.toCommandProperties = toCommandProperties;
 //# sourceMappingURL=utils.js.map
 
 /***/ }),

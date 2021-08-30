@@ -7,7 +7,7 @@ const run = async (): Promise<void> => {
   try {
     await Promise.all([processRepository(), processBranches()]);
   } catch (error) {
-    core.setFailed(error.message);
+    core.setFailed(String(error));
   }
 };
 

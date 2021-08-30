@@ -30,7 +30,7 @@ const setProtectionRules = async (
   try {
     await createProtectionRule(branchName, protectionRules);
   } catch (error) {
-    core.warning(`Branch protection update failed: ${error.message}`);
+    core.warning(`Branch protection update failed: ${String(error)}`);
   }
 };
 
