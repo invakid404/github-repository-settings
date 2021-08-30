@@ -17,7 +17,7 @@ jobs:
 
       - uses: invakid404/merge-conflict-commenter@v0.0.0
         env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          GITHUB_TOKEN: "${{ secrets.GH_PAT }}"
         with:
           dirtyLabel: "has conflicts"
           message: "This PR has conflicts!"
