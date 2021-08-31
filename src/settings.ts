@@ -5,6 +5,7 @@ import * as yaml from 'yaml';
 
 import { Context } from './context';
 import { CreateBranchProtectionRuleInput } from './generated/graphql';
+import { keysToSnakeCase } from './utils';
 
 export type SettingsType<T> = Omit<T, 'owner' | 'repo'>;
 export type GraphQLSettingsType<T> = Omit<
@@ -41,6 +42,11 @@ export const getSettings = (): Settings => {
   );
 
   const settingsContent = fs.readFileSync(settingsPath, 'utf-8');
+  const { repository: repositorySettings, ...rest } =
+    yaml.parse(settingsContent);
 
-  return (settings = yaml.parse(settingsContent));
+  return (settings = {
+    ...rest,
+    repository: keysToSnakeCase(repositorySettings),
+  });
 };
