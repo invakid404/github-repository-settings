@@ -5,7 +5,7 @@ import { Context } from './context';
 import { BranchProtectionRule, Maybe, Repository } from './generated/graphql';
 import { getRepositoryId, octoql } from './octoql';
 import { BranchSettings, getSettings } from './settings';
-import { getUserId } from './users';
+import { getActorId } from './users';
 import { notEmpty } from './utils';
 
 export const processBranches = async (): Promise<void> => {
@@ -114,7 +114,7 @@ const createProtectionRule = async (
             ...protectionRules,
             pushActorIds: await Promise.all(
               protectionRules.pushActorIds?.map(async (login) =>
-                getUserId(login),
+                getActorId(login),
               ) ?? [],
             ),
             pattern: branchName,

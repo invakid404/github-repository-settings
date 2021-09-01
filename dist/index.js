@@ -107,7 +107,7 @@ const createProtectionRule = async (branchName, protectionRules) => {
                 __args: {
                     input: {
                         ...protectionRules,
-                        pushActorIds: await Promise.all((_b = (_a = protectionRules.pushActorIds) === null || _a === void 0 ? void 0 : _a.map(async (login) => (0, users_1.getUserId)(login))) !== null && _b !== void 0 ? _b : []),
+                        pushActorIds: await Promise.all((_b = (_a = protectionRules.pushActorIds) === null || _a === void 0 ? void 0 : _a.map(async (login) => (0, users_1.getActorId)(login))) !== null && _b !== void 0 ? _b : []),
                         pattern: branchName,
                         ...(branchProtectionRuleId
                             ? { branchProtectionRuleId }
@@ -363,10 +363,20 @@ exports.getSettings = getSettings;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getUserId = void 0;
+exports.getTeamId = exports.getUserId = exports.getActorId = void 0;
 const json_to_graphql_query_1 = __nccwpck_require__(6450);
 const octoql_1 = __nccwpck_require__(2866);
 const userMap = {};
+const teamMap = {};
+const getActorId = async (login) => {
+    const parts = login.split('/');
+    if (parts.length === 1) {
+        return (0, exports.getUserId)(login);
+    }
+    const [organization, slug] = parts;
+    return (0, exports.getTeamId)(organization, slug);
+};
+exports.getActorId = getActorId;
 const getUserId = async (login) => {
     const cachedId = userMap[login];
     if (cachedId) {
@@ -386,6 +396,31 @@ const getUserId = async (login) => {
     return (userMap[login] = id);
 };
 exports.getUserId = getUserId;
+const getTeamId = async (organization, slug) => {
+    const teamKey = `${organization}/${slug}`;
+    const cachedId = teamMap[teamKey];
+    if (cachedId) {
+        return cachedId;
+    }
+    const request = {
+        query: {
+            organization: {
+                __args: {
+                    login: organization,
+                },
+                team: {
+                    __args: {
+                        slug,
+                    },
+                    id: true,
+                },
+            },
+        },
+    };
+    const { organization: { team: { id }, }, } = await (0, octoql_1.octoql)((0, json_to_graphql_query_1.jsonToGraphQLQuery)(request));
+    return (teamMap[teamKey] = id);
+};
+exports.getTeamId = getTeamId;
 
 
 /***/ }),
