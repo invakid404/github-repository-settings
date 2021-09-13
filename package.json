@@ -38,7 +38,7 @@
     "@graphql-codegen/cli": "2.2.0",
     "@graphql-codegen/typescript": "2.2.2",
     "@graphql-codegen/typescript-document-nodes": "2.1.4",
-    "@graphql-codegen/typescript-resolvers": "2.2.0",
+    "@graphql-codegen/typescript-resolvers": "2.2.1",
     "@octokit/graphql-schema": "^10.70.0",
     "@types/lodash.snakecase": "^4.1.6",
     "@types/lodash.trim": "^4.5.6",
