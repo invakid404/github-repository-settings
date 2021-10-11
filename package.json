@@ -28,7 +28,7 @@
     "@actions/core": "^1.5.0",
     "@actions/github": "^5.0.0",
     "@octokit/graphql": "^4.8.0",
-    "@octokit/rest": "^18.10.0",
+    "@octokit/rest": "^18.12.0",
     "json-to-graphql-query": "^2.1.0",
     "lodash.snakecase": "^4.1.1",
     "lodash.trim": "^4.5.1",
